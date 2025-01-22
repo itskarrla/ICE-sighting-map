@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community ICE Reporting</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: #0056b3;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      padding: 1rem;
+    }
+    form {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    input, textarea, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #003d80;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+      margin-top: 1rem;
+    }
+    .report-table {
+      margin-top: 1rem;
+      background: white;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .report-table th, .report-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .report-table th {
+      background-color: #0056b3;
+      color: white;
+    }
+  </style>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+</head>
+<body>
+  <header>
+    <h1>Community ICE Reporting</h1>
+  </header>
+  <main>
+    <form id="reportForm">
+      <h2>Report an ICE Sighting</h2>
+      <input type="text" id="location" placeholder="Location (City, State)" required>
+      <textarea id="description" rows="4" placeholder="Description (Optional)"></textarea>
+      <input type="date" id="date" required>
+      <button type="submit">Submit Report</button>
+    </form>
+    <div id="map"></div>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Location</th>
+          <th>Description</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="reportTableBody">
+      </tbody>
+    </table>
+  </main>
+  <script>
+    let reports = [];
+
+    // Handle form submission
+    document.getElementById('reportForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const location = document.getElementById('location').value;
+      const description = document.getElementById('description').value || 'No description provided';
+      const date = document.getElementById('date').value;
+
+      const report = { location, description, date };
+      reports.push(report);
+      updateTable();
+      updateMap();
+      e.target.reset();
+    });
+
+    // Update table with reports
+    function updateTable() {
+      const tbody = document.getElementById('reportTableBody');
+      tbody.innerHTML = '';
+      reports.forEach(report => {
+        const row = `<tr>
+          <td>${report.location}</td>
+          <td>${report.description}</td>
+          <td>${report.date}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Initialize map
+    const map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 5,
+      center: { lat: 39.8283, lng: -98.5795 }, // Center of the US
+    });
+
+    // Update map with report markers
+    function updateMap() {
+      reports.forEach(report => {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: report.location }, function(results, status) {
+          if (status === 'OK') {
+            new google.maps.Marker({
+              position: results[0].geometry.location,
+              map: map,
+              title: report.description,
+            });
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>
